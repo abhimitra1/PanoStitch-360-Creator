@@ -207,16 +207,16 @@ export function SceneEditClient({ params }: Props) {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-48px)]">
+    <div className="flex flex-col h-[calc(100dvh-56px)]">
       {/* Top bar */}
-      <div className="flex items-center gap-3 px-4 h-12 border-b border-line bg-surface shrink-0">
+      <div className="flex items-center gap-2 px-3 sm:px-4 h-12 border-b border-line bg-surface shrink-0">
         <Button variant="ghost" size="sm" asChild className="-ml-1">
           <Link href={`/projects/${id}`}>
             <ArrowLeft className="h-4 w-4" />
-            back
+            <span className="hidden sm:inline">back</span>
           </Link>
         </Button>
-        <div className="h-4 w-px bg-line" />
+        <div className="h-4 w-px bg-line shrink-0" />
         {editingName ? (
           <Input
             ref={nameRef}
@@ -227,12 +227,12 @@ export function SceneEditClient({ params }: Props) {
               if (e.key === 'Enter') nameRef.current?.blur()
               if (e.key === 'Escape') setEditingName(false)
             }}
-            className="h-7 text-sm font-medium w-48"
+            className="h-7 text-sm font-medium w-32 sm:w-48"
             autoFocus
           />
         ) : (
           <button
-            className="text-sm font-medium text-ink hover:text-ink-dim transition-colors"
+            className="text-sm font-medium text-ink hover:text-ink-dim transition-colors truncate max-w-[120px] sm:max-w-none"
             onClick={() => { setNameInput(scene.name); setEditingName(true) }}
             title="Click to rename"
           >
@@ -242,11 +242,12 @@ export function SceneEditClient({ params }: Props) {
 
         {/* Placement mode banner */}
         {editorMode === 'placing' && (
-          <div className="flex-1 flex items-center justify-center gap-2 text-xs font-mono text-accent">
-            <MapPin className="h-3.5 w-3.5" />
-            Click on the panorama to place a hotspot
+          <div className="flex-1 flex items-center justify-center gap-1.5 text-xs font-mono text-accent">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <span className="hidden sm:inline">Click on the panorama to place a hotspot</span>
+            <span className="sm:hidden">Tap to place</span>
             <button
-              className="ml-2 underline text-ink-faint hover:text-ink"
+              className="ml-1 underline text-ink-faint hover:text-ink"
               onClick={() => setEditorMode('idle')}
             >
               cancel
@@ -254,7 +255,7 @@ export function SceneEditClient({ params }: Props) {
           </div>
         )}
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2 shrink-0">
           <Button
             variant="outline"
             size="sm"
@@ -262,15 +263,18 @@ export function SceneEditClient({ params }: Props) {
             className="text-error border-error/30 hover:bg-error/5 text-xs"
           >
             <Trash2 className="h-3 w-3" />
-            Delete scene
+            <span className="hidden sm:inline">Delete scene</span>
           </Button>
         </div>
       </div>
 
-      {/* Main: viewer + side panel */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Viewer — 70% */}
-        <div className="flex-1 relative" style={{ cursor: editorMode === 'placing' ? 'crosshair' : 'default' }}>
+      {/* Main: viewer on top (mobile) / left (desktop) + panel */}
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        {/* Viewer */}
+        <div
+          className="flex-1 min-h-0 relative"
+          style={{ cursor: editorMode === 'placing' ? 'crosshair' : 'default' }}
+        >
           <PanoViewer
             panoramaBlobId={scene.panoramaBlobId}
             haov={scene.haov}
@@ -292,8 +296,8 @@ export function SceneEditClient({ params }: Props) {
           )}
         </div>
 
-        {/* Side panel — 30%, min 280px */}
-        <div className="w-72 xl:w-80 shrink-0 border-l border-line bg-surface flex flex-col overflow-hidden">
+        {/* Side panel — bottom on mobile, right on desktop */}
+        <div className="h-[45%] md:h-auto md:w-72 xl:w-80 shrink-0 border-t md:border-t-0 md:border-l border-line bg-surface flex flex-col overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-line">
             <span className="font-mono text-xs tracking-widest text-ink-faint uppercase">
               {hotspots.length === 0 ? 'hotspots' : `${String(hotspots.length).padStart(2, '0')} hotspot${hotspots.length !== 1 ? 's' : ''}`}

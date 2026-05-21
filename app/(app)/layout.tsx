@@ -1,12 +1,18 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import { Header } from '@/components/shared/Header'
 import { GrainOverlay } from '@/components/shared/GrainOverlay'
 import { QuotaWarning } from '@/components/storage/QuotaWarning'
 import { BackupReminder } from '@/components/storage/BackupReminder'
 import { FirstRunDialog } from '@/components/shared/FirstRunDialog'
 
+const FULL_HEIGHT_PATHS = /\/scenes\/[^/]+\/edit$/
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const isFullHeight = FULL_HEIGHT_PATHS.test(pathname)
+
   return (
     <>
       <GrainOverlay />
@@ -15,7 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <QuotaWarning />
         <BackupReminder />
         <main className="flex-1">{children}</main>
-        <footer className="border-t border-line px-6 py-3 flex items-center justify-center gap-3">
+        {!isFullHeight && <footer className="border-t border-line px-6 py-3 flex items-center justify-center gap-3">
           <p className="font-mono text-[10px] tracking-widest text-ink-faint uppercase">
             developed by{' '}
             <a
@@ -39,7 +45,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </svg>
             source code
           </a>
-        </footer>
+        </footer>}
       </div>
       <FirstRunDialog />
     </>

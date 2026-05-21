@@ -96,7 +96,7 @@ export function ProjectDashboardClient({ params }: Props) {
         </Link>
       </Button>
 
-      <div className="flex items-start justify-between gap-4 mb-2">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-2">
         <div className="flex-1 min-w-0">
           {editingName ? (
             <Input
@@ -108,12 +108,12 @@ export function ProjectDashboardClient({ params }: Props) {
                 if (e.key === 'Enter') nameRef.current?.blur()
                 if (e.key === 'Escape') setEditingName(false)
               }}
-              className="text-4xl font-display font-bold py-0 border-b-2"
+              className="text-3xl sm:text-4xl font-display font-bold py-0 border-b-2"
               autoFocus
             />
           ) : (
             <h1
-              className="font-display font-bold text-4xl text-ink cursor-pointer hover:text-ink-dim transition-colors truncate"
+              className="font-display font-bold text-3xl sm:text-4xl text-ink cursor-pointer hover:text-ink-dim transition-colors truncate"
               onClick={() => {
                 setNameInput(project.name)
                 setEditingName(true)

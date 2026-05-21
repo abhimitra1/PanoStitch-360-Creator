@@ -27,6 +27,9 @@ interface Props {
   onCanvasClick?: (pos: { yaw: number; pitch: number }) => void
   mode?: 'view' | 'edit'
   autoRotate?: boolean
+  gyroEnabled?: boolean
+  activeInfoHotspotId?: string
+  onInfoClose?: () => void
   className?: string
 }
 
@@ -78,6 +81,9 @@ interface SceneProps {
   onCanvasClick?: (pos: { yaw: number; pitch: number }) => void
   mode: 'view' | 'edit'
   autoRotate: boolean
+  gyroEnabled: boolean
+  activeInfoHotspotId?: string
+  onInfoClose?: () => void
 }
 
 function PanoScene({
@@ -93,6 +99,9 @@ function PanoScene({
   onCanvasClick,
   mode,
   autoRotate,
+  gyroEnabled,
+  activeInfoHotspotId,
+  onInfoClose,
 }: SceneProps) {
   const { camera, gl } = useThree()
   const cam = camera as THREE.PerspectiveCamera
@@ -132,6 +141,34 @@ function PanoScene({
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
   }, [cam, gl])
+
+  // Enable single-finger drag on touch devices
+  useEffect(() => {
+    gl.domElement.style.touchAction = 'none'
+  }, [gl])
+
+  // Gyroscope / DeviceOrientation tracking
+  useEffect(() => {
+    if (!gyroEnabled) return
+    let initialAlpha: number | null = null
+    const startYaw = yaw.current
+
+    const handler = (e: DeviceOrientationEvent) => {
+      if (e.alpha === null || e.beta === null) return
+      if (initialAlpha === null) initialAlpha = e.alpha
+      // Wrap-safe yaw delta from initial compass heading
+      let delta = initialAlpha - e.alpha
+      if (delta > 180) delta -= 360
+      if (delta < -180) delta += 360
+      yaw.current = startYaw + delta
+      // beta=90 means phone held upright → horizon (pitch=0)
+      pitch.current = Math.max(-85, Math.min(85, e.beta - 90))
+      applyCameraRotation(cam, yaw.current, pitch.current)
+    }
+
+    window.addEventListener('deviceorientation', handler, true)
+    return () => window.removeEventListener('deviceorientation', handler, true)
+  }, [gyroEnabled, cam])
 
   // Per-frame: auto-rotate + throttled view state reporting
   const viewTimer = useRef(0)
@@ -187,26 +224,40 @@ function PanoScene({
         <meshBasicMaterial map={texture} side={THREE.BackSide} />
       </mesh>
 
-      {hotspots.map((h) => (
-        <Html key={h.id} position={toVec3(h.yaw, h.pitch)} center>
-          <div
-            className={h.type === 'scene-link' ? 'pano-hs-scene' : 'pano-hs-info'}
-            onClick={(e) => {
-              e.stopPropagation()
-              onHotspotClick?.(h)
-            }}
-          >
-            {h.type === 'scene-link' ? (
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path d="m9 18 6-6-6-6" />
-              </svg>
-            ) : (
-              <em>i</em>
-            )}
-            {h.title && <span className="pano-hs-label">{h.title}</span>}
-          </div>
-        </Html>
-      ))}
+      {hotspots.map((h) => {
+        const isActive = h.type === 'info' && h.id === activeInfoHotspotId
+        return (
+          <Html key={h.id} position={toVec3(h.yaw, h.pitch)} center zIndexRange={isActive ? [300, 200] : [100, 0]}>
+            <div
+              className={h.type === 'scene-link' ? 'pano-hs-scene' : 'pano-hs-info'}
+              onClick={(e) => { e.stopPropagation(); onHotspotClick?.(h) }}
+            >
+              {h.type === 'scene-link' ? (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                  {h.title && <span className="pano-hs-label">{h.title}</span>}
+                </>
+              ) : (
+                <>
+                  <em>i</em>
+                  {/* Always-visible title tag below the icon */}
+                  {h.title && <span className="pano-hs-title-always">{h.title}</span>}
+                  {/* Floating tracked card when active */}
+                  {isActive && (
+                    <div className="pano-hs-card" onClick={(e) => e.stopPropagation()}>
+                      <button className="pano-hs-card-close" onClick={(e) => { e.stopPropagation(); onInfoClose?.() }}>✕</button>
+                      {h.title && <p className="pano-hs-card-title">{h.title}</p>}
+                      {h.description && <p className="pano-hs-card-body">{h.description}</p>}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </Html>
+        )
+      })}
     </>
   )
 }
@@ -226,6 +277,9 @@ export function PanoViewer({
   onCanvasClick,
   mode = 'view',
   autoRotate = false,
+  gyroEnabled = false,
+  activeInfoHotspotId,
+  onInfoClose,
   className = '',
 }: Props) {
   const [panoUrl, setPanoUrl] = useState<string | null>(null)
@@ -299,8 +353,65 @@ export function PanoViewer({
           opacity: 0;
           transition: opacity 0.15s;
         }
-        .pano-hs-scene:hover .pano-hs-label,
-        .pano-hs-info:hover .pano-hs-label { opacity: 1; }
+        .pano-hs-scene:hover .pano-hs-label { opacity: 1; }
+        .pano-hs-title-always {
+          position: absolute;
+          top: calc(100% + 6px);
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(13,12,10,0.82);
+          color: #f5f0e6;
+          font-size: 11px;
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 600;
+          padding: 3px 9px;
+          border-radius: 3px;
+          white-space: nowrap;
+          max-width: 150px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          pointer-events: none;
+        }
+        .pano-hs-card {
+          position: absolute;
+          bottom: calc(100% + 14px);
+          left: 50%;
+          transform: translateX(-50%);
+          width: min(230px, 80vw);
+          background: rgba(13,12,10,0.96);
+          border: 1px solid rgba(245,240,230,0.14);
+          border-radius: 10px;
+          padding: 14px 14px 12px;
+          pointer-events: auto;
+          box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+        }
+        .pano-hs-card-close {
+          position: absolute;
+          top: 8px; right: 10px;
+          background: none; border: none;
+          color: rgba(245,240,230,0.4);
+          font-size: 15px;
+          cursor: pointer;
+          padding: 0;
+          line-height: 1;
+        }
+        .pano-hs-card-close:hover { color: #f5f0e6; }
+        .pano-hs-card-title {
+          margin: 0 0 6px;
+          font-size: 14px;
+          font-weight: 700;
+          font-family: 'Space Grotesk', sans-serif;
+          color: #f5f0e6;
+          line-height: 1.3;
+          padding-right: 18px;
+        }
+        .pano-hs-card-body {
+          margin: 0;
+          font-size: 12px;
+          color: rgba(245,240,230,0.65);
+          line-height: 1.6;
+          white-space: pre-line;
+        }
         @keyframes pano-pulse {
           0%, 100% { box-shadow: 0 0 0 0 rgba(217,119,87,0.4); }
           50% { box-shadow: 0 0 0 8px rgba(217,119,87,0); }
@@ -342,6 +453,9 @@ export function PanoViewer({
                 onCanvasClick={onCanvasClick}
                 mode={mode}
                 autoRotate={autoRotate}
+                gyroEnabled={gyroEnabled}
+                activeInfoHotspotId={activeInfoHotspotId}
+                onInfoClose={onInfoClose}
               />
             </Suspense>
           </Canvas>
