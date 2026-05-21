@@ -24,9 +24,9 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'PanoStitch — Create 360° Virtual Tours',
+  title: 'PanoStitch — 360° Virtual Tours',
   description:
-    'Stitch regular photos into immersive 360° panoramas and build shareable virtual tours, entirely in your browser. No upload, no account.',
+    'Capture 360° photos on your phone, import them into PanoStitch, add hotspots, and share immersive virtual tours — entirely in your browser. No account. Nothing uploaded.',
 }
 
 // Runs synchronously before React hydrates — prevents flash of wrong theme.
