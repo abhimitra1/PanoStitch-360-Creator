@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { HelpCircle, Smartphone, FolderPlus, MapPin, Share2, X, ChevronRight } from 'lucide-react'
+import { HelpCircle, Smartphone, FolderPlus, MapPin, Share2, X, ChevronRight, BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -86,6 +86,18 @@ export function TutorialDialog() {
       >
         <HelpCircle className="h-3.5 w-3.5" />
         How to use
+      </Button>
+
+      <Button
+        variant="outline"
+        size="sm"
+        asChild
+        className="gap-1.5 font-mono text-xs tracking-wider"
+      >
+        <a href="/tutorial.html" target="_blank" rel="noopener noreferrer">
+          <BookOpen className="h-3.5 w-3.5" />
+          Tutorial
+        </a>
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
