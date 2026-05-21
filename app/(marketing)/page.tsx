@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { GrainOverlay } from '@/components/shared/GrainOverlay'
 import { PanoMark } from '@/components/shared/PanoMark'
+import { ThemeToggle } from '@/components/shared/ThemeToggle'
 
 export default function LandingPage() {
   return (
@@ -16,12 +17,15 @@ export default function LandingPage() {
             <span className="font-mono text-[9px] text-ink-faint tracking-widest uppercase">360° Virtual Tours</span>
           </div>
         </div>
-        <Link
-          href="/projects"
-          className="font-mono text-xs tracking-widest text-ink-dim hover:text-ink transition-colors"
-        >
-          open app →
-        </Link>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Link
+            href="/projects"
+            className="font-mono text-xs tracking-widest text-ink-dim hover:text-ink transition-colors"
+          >
+            open app →
+          </Link>
+        </div>
       </nav>
 
       {/* Hero */}

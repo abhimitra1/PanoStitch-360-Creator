@@ -10,7 +10,9 @@ import {
 import { db } from '@/lib/db/schema'
 import type { Hotspot, Scene } from '@/lib/db/schema'
 import { getProjectScenes, getSceneHotspots } from '@/lib/db/queries'
+import Image from 'next/image'
 import { PanoViewer } from '@/components/viewer/PanoViewer'
+import { PanoMark } from '@/components/shared/PanoMark'
 import { useBlobUrl } from '@/lib/hooks/useBlobUrl'
 
 interface Props {
@@ -207,19 +209,32 @@ export function TourClient({ params }: Props) {
         />
       </div>
 
+      {/* Logo pill — always visible */}
+      <div className="absolute top-0 left-0 z-10 pointer-events-none pt-3 pl-4">
+        <div className="flex items-center gap-2 shrink-0 bg-black/40 backdrop-blur-sm rounded-lg px-3 py-2">
+          <Image src="/assets/cutm-logo-bg.png" alt="CUTM" width={28} height={28} className="object-contain" />
+          <div className="w-px h-5 bg-white/20" />
+          <PanoMark className="h-6 w-6" style={{ color: '#f5f0e6' }} />
+          <span className="font-display font-bold text-sm text-white/90 tracking-wide">PanoStitch</span>
+        </div>
+      </div>
+
       {/* Overlay — fades in/out */}
       <div
         className="absolute inset-0 pointer-events-none transition-opacity duration-300"
         style={{ opacity: overlayVisible ? 1 : 0 }}
       >
         {/* Top bar */}
-        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/60 to-transparent pointer-events-auto flex items-start px-4 pt-4 gap-4">
-          <div className="flex-1 min-w-0">
-            <p className="font-display font-bold text-lg text-ink leading-tight truncate">
+        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/60 to-transparent pointer-events-auto flex items-center px-4 pt-2 gap-3">
+          {/* Spacer to push controls past the always-visible logo */}
+          <div className="shrink-0" style={{ width: 172 }} />
+          <div className="flex flex-col min-w-0">
+            <p className="font-display font-bold text-base text-white leading-tight truncate">
               {project?.name}
             </p>
-            <p className="font-mono text-xs text-ink/60 truncate">{currentScene.name}</p>
+            <p className="font-mono text-xs text-white/60 truncate">{currentScene.name}</p>
           </div>
+          <div className="flex-1" />
           <div className="flex items-center gap-1 shrink-0">
             <TourButton onClick={() => setAutoRotate((a) => !a)} title="Toggle auto-rotate" active={autoRotate}>
               <RotateCcw className="h-4 w-4" />

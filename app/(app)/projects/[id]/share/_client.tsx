@@ -111,6 +111,33 @@ export function ShareClient({ params }: Props) {
       {!project.lastExportedAt && <div className="mb-10" />}
 
       <div className="space-y-4">
+        {/* Single HTML */}
+        <ExportCard
+          icon={<Download className="h-5 w-5 text-ink-dim" />}
+          title="Single HTML file"
+          badge=".html"
+          hint="Recommended for sharing"
+          description={
+            canInline
+              ? 'Everything in one file — perfect for emailing small tours. Open directly in any browser.'
+              : `Project is ~${formatBytes(estimatedBytes ?? 0)} — too large for single-file export (limit 25 MB). Use the tour bundle instead.`
+          }
+          status={tourInlineStatus}
+          onExport={() => runExport('tourinline', setTourInlineStatus)}
+          disabled={scenes.length === 0 || !canInline}
+        />
+
+        {/* Tour zip */}
+        <ExportCard
+          icon={<Globe className="h-5 w-5 text-ink-dim" />}
+          title="Tour bundle (zip)"
+          badge=".zip"
+          description="Self-contained tour you can host anywhere. Unzip and open index.html, or drop onto Netlify Drop, GitHub Pages, or any static host."
+          status={tourZipStatus}
+          onExport={() => runExport('tourzip', setTourZipStatus)}
+          disabled={scenes.length === 0}
+        />
+
         {/* .panostitch backup */}
         <ExportCard
           icon={<FileArchive className="h-5 w-5 text-ink-dim" />}
@@ -120,33 +147,6 @@ export function ShareClient({ params }: Props) {
           status={panoStatus}
           onExport={() => runExport('panostitch', setPanoStatus)}
           disabled={scenes.length === 0}
-        />
-
-        {/* Tour zip */}
-        <ExportCard
-          icon={<Globe className="h-5 w-5 text-ink-dim" />}
-          title="Tour bundle (zip)"
-          badge=".zip"
-          description="Self-contained tour you can host anywhere. Unzip and open index.html, or drop onto Netlify Drop, GitHub Pages, or any static host."
-          hint="Recommended for sharing"
-          status={tourZipStatus}
-          onExport={() => runExport('tourzip', setTourZipStatus)}
-          disabled={scenes.length === 0}
-        />
-
-        {/* Single HTML */}
-        <ExportCard
-          icon={<Download className="h-5 w-5 text-ink-dim" />}
-          title="Single HTML file"
-          badge=".html"
-          description={
-            canInline
-              ? 'Everything in one file — perfect for emailing small tours. Open directly in any browser.'
-              : `Project is ~${formatBytes(estimatedBytes ?? 0)} — too large for single-file export (limit 25 MB). Use the tour bundle instead.`
-          }
-          status={tourInlineStatus}
-          onExport={() => runExport('tourinline', setTourInlineStatus)}
-          disabled={scenes.length === 0 || !canInline}
         />
       </div>
 

@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 }
 
 // Runs synchronously before React hydrates — prevents flash of wrong theme.
-const themeScript = `(function(){try{var t=localStorage.getItem('panostitch_theme')||((window.matchMedia&&window.matchMedia('(prefers-color-scheme:light)').matches)?'light':'dark');document.documentElement.dataset.theme=t;}catch(e){}})()`
+const themeScript = `(function(){try{var t=localStorage.getItem('panostitch_theme')||'light';document.documentElement.dataset.theme=t;}catch(e){}})()`
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

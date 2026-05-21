@@ -498,126 +498,130 @@ function HotspotForm({
     : !!draft.targetSceneId
 
   return (
-    <div className="border-t border-line bg-background p-4 space-y-4 shrink-0">
-      <div className="flex items-center justify-between">
-        <span className="font-mono text-xs tracking-widest text-ink-faint uppercase">
-          {isNew ? 'New hotspot' : 'Edit hotspot'}
-        </span>
-        <button className="text-ink-faint hover:text-ink text-xs" onClick={onCancel}>✕</button>
-      </div>
+    <div className="border-t border-line bg-background shrink-0 flex flex-col overflow-hidden" style={{ maxHeight: '65%' }}>
+      {/* Scrollable fields */}
+      <div className="overflow-y-auto flex-1 p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-xs tracking-widest text-ink-faint uppercase">
+            {isNew ? 'New hotspot' : 'Edit hotspot'}
+          </span>
+          <button className="text-ink-faint hover:text-ink text-xs" onClick={onCancel}>✕</button>
+        </div>
 
-      {/* Type toggle */}
-      <div className="flex gap-2">
-        {(['scene-link', 'info'] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => set({ type: t })}
-            className={`flex-1 py-1.5 text-xs font-mono rounded-[2px] border transition-colors ${
-              draft.type === t
-                ? 'border-accent bg-accent/10 text-accent'
-                : 'border-line text-ink-dim hover:bg-surface-hover'
-            }`}
-          >
-            {t === 'scene-link' ? 'Scene link' : 'Info'}
-          </button>
-        ))}
-      </div>
-
-      {draft.type === 'scene-link' ? (
-        <>
-          <div>
-            <label className="font-mono text-[10px] tracking-widest text-ink-faint uppercase block mb-1.5">
-              Target scene
-            </label>
-            <select
-              value={draft.targetSceneId ?? ''}
-              onChange={(e) => set({ targetSceneId: e.target.value || undefined })}
-              className="w-full bg-surface border border-line rounded-[2px] text-xs text-ink px-2 py-1.5 font-mono"
+        {/* Type toggle */}
+        <div className="flex gap-2">
+          {(['scene-link', 'info'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => set({ type: t })}
+              className={`flex-1 py-1.5 text-xs font-mono rounded-[2px] border transition-colors ${
+                draft.type === t
+                  ? 'border-accent bg-accent/10 text-accent'
+                  : 'border-line text-ink-dim hover:bg-surface-hover'
+              }`}
             >
-              <option value="">— select a scene —</option>
-              {scenes.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-          </div>
+              {t === 'scene-link' ? 'Scene link' : 'Info'}
+            </button>
+          ))}
+        </div>
 
-          {draft.targetSceneId && (
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-ink-dim">
-                {draft.targetYaw !== undefined
-                  ? `View: ${draft.targetYaw.toFixed(1)}°, ${(draft.targetPitch ?? 0).toFixed(1)}°`
-                  : 'No target view set'}
-              </span>
-              <Button variant="outline" size="sm" onClick={onOpenTargetView} className="text-xs h-7">
-                Set view
-              </Button>
+        {draft.type === 'scene-link' ? (
+          <>
+            <div>
+              <label className="font-mono text-[10px] tracking-widest text-ink-faint uppercase block mb-1.5">
+                Target scene
+              </label>
+              <select
+                value={draft.targetSceneId ?? ''}
+                onChange={(e) => set({ targetSceneId: e.target.value || undefined })}
+                className="w-full bg-surface border border-line rounded-[2px] text-xs text-ink px-2 py-1.5 font-mono"
+              >
+                <option value="">— select a scene —</option>
+                {scenes.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
             </div>
-          )}
 
-          {isNew && draft.targetSceneId && (
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={addReciprocal}
-                onChange={(e) => setAddReciprocal(e.target.checked)}
-                className="rounded"
+            {draft.targetSceneId && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-ink-dim">
+                  {draft.targetYaw !== undefined
+                    ? `View: ${draft.targetYaw.toFixed(1)}°, ${(draft.targetPitch ?? 0).toFixed(1)}°`
+                    : 'No target view set'}
+                </span>
+                <Button variant="outline" size="sm" onClick={onOpenTargetView} className="text-xs h-7">
+                  Set view
+                </Button>
+              </div>
+            )}
+
+            {isNew && draft.targetSceneId && (
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={addReciprocal}
+                  onChange={(e) => setAddReciprocal(e.target.checked)}
+                  className="rounded"
+                />
+                <span className="text-xs text-ink-dim">
+                  Add return hotspot in {scenes.find((s) => s.id === draft.targetSceneId)?.name}
+                </span>
+              </label>
+            )}
+          </>
+        ) : (
+          <>
+            <div>
+              <label className="font-mono text-[10px] tracking-widest text-ink-faint uppercase block mb-1.5">
+                Title <span className="text-error">*</span>
+              </label>
+              <Input
+                value={draft.title ?? ''}
+                onChange={(e) => set({ title: e.target.value })}
+                maxLength={60}
+                placeholder="e.g. Reception desk"
+                className="h-8 text-sm"
+                autoFocus
               />
-              <span className="text-xs text-ink-dim">
-                Add return hotspot in {scenes.find((s) => s.id === draft.targetSceneId)?.name}
-              </span>
-            </label>
-          )}
-        </>
-      ) : (
-        <>
-          <div>
-            <label className="font-mono text-[10px] tracking-widest text-ink-faint uppercase block mb-1.5">
-              Title <span className="text-error">*</span>
-            </label>
-            <Input
-              value={draft.title ?? ''}
-              onChange={(e) => set({ title: e.target.value })}
-              maxLength={60}
-              placeholder="e.g. Reception desk"
-              className="h-8 text-sm"
-              autoFocus
-            />
-          </div>
-          <div>
-            <label className="font-mono text-[10px] tracking-widest text-ink-faint uppercase block mb-1.5">
-              Description
-            </label>
-            <textarea
-              value={draft.description ?? ''}
-              onChange={(e) => set({ description: e.target.value })}
-              maxLength={500}
-              rows={3}
-              placeholder="Optional details..."
-              className="w-full bg-surface border border-line rounded-[2px] text-xs text-ink px-2 py-1.5 resize-none font-sans"
-            />
-          </div>
-        </>
-      )}
+            </div>
+            <div>
+              <label className="font-mono text-[10px] tracking-widest text-ink-faint uppercase block mb-1.5">
+                Description
+              </label>
+              <textarea
+                value={draft.description ?? ''}
+                onChange={(e) => set({ description: e.target.value })}
+                maxLength={500}
+                rows={3}
+                placeholder="Optional details..."
+                className="w-full bg-surface border border-line rounded-[2px] text-xs text-ink px-2 py-1.5 resize-none font-sans"
+              />
+            </div>
+          </>
+        )}
 
-      {/* Position inputs */}
-      <div className="grid grid-cols-2 gap-2">
-        {(['yaw', 'pitch'] as const).map((field) => (
-          <div key={field}>
-            <label className="font-mono text-[10px] tracking-widest text-ink-faint uppercase block mb-1">
-              {field}°
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={draft[field].toFixed(1)}
-              onChange={(e) => set({ [field]: parseFloat(e.target.value) || 0 })}
-              className="w-full bg-surface border border-line rounded-[2px] text-xs text-ink px-2 py-1 font-mono"
-            />
-          </div>
-        ))}
+        {/* Position inputs */}
+        <div className="grid grid-cols-2 gap-2">
+          {(['yaw', 'pitch'] as const).map((field) => (
+            <div key={field}>
+              <label className="font-mono text-[10px] tracking-widest text-ink-faint uppercase block mb-1">
+                {field}°
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                value={draft[field].toFixed(1)}
+                onChange={(e) => set({ [field]: parseFloat(e.target.value) || 0 })}
+                className="w-full bg-surface border border-line rounded-[2px] text-xs text-ink px-2 py-1 font-mono"
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="flex gap-2 pt-1">
+      {/* Action buttons — always visible */}
+      <div className="flex gap-2 px-4 py-3 border-t border-line shrink-0">
         <Button variant="outline" size="sm" onClick={onCancel} className="flex-1">Cancel</Button>
         <Button
           size="sm"

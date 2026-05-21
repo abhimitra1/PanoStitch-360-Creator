@@ -1,41 +1,25 @@
 @import "tailwindcss";
 
-/* ── Design tokens (dark = default) ─────────────────────────────────────── */
+/* ── Design tokens (light = default) ────────────────────────────────────── */
 @theme {
-  --color-background: #0d0c0a;
-  --color-surface: #16140f;
-  --color-surface-hover: #1c1a14;
-  --color-ink: #f5f0e6;
-  --color-ink-dim: #a8a293;
-  --color-ink-faint: #6b6657;
-  --color-accent: #f05428;
-  --color-line: #2a2620;
-  --color-success: #7ea76e;
-  --color-error: #e05040;
+  --color-background: #fafaf8;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f3f1ee;
+  --color-ink: #1a1816;
+  --color-ink-dim: #524e49;
+  --color-ink-faint: #9a948c;
+  --color-accent: #cb3412;
+  --color-line: #e8e5e0;
+  --color-success: #2d7a42;
+  --color-error: #c42a18;
 
   --font-display: var(--font-space-grotesk), 'Segoe UI', system-ui, sans-serif;
   --font-sans: var(--font-outfit), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), 'Courier New', monospace;
 }
 
-/* ── Dark theme ──────────────────────────────────────────────────────────── */
+/* ── Light theme (default) ───────────────────────────────────────────────── */
 :root,
-[data-theme='dark'] {
-  color-scheme: dark;
-  --color-background: #0d0c0a;
-  --color-surface: #16140f;
-  --color-surface-hover: #1c1a14;
-  --color-ink: #f5f0e6;
-  --color-ink-dim: #a8a293;
-  --color-ink-faint: #6b6657;
-  /* vivid coral — contrast 5.8:1 with near-black text (#0d0c0a) */
-  --color-accent: #f05428;
-  --color-line: #2a2620;
-  --color-success: #7ea76e;
-  --color-error: #e05040;
-}
-
-/* ── Light theme ─────────────────────────────────────────────────────────── */
 [data-theme='light'] {
   color-scheme: light;
   --color-background: #fafaf8;
@@ -44,11 +28,25 @@
   --color-ink: #1a1816;
   --color-ink-dim: #524e49;
   --color-ink-faint: #9a948c;
-  /* deeper coral — contrast 5.3:1 with near-white text (#fafaf8) */
   --color-accent: #cb3412;
   --color-line: #e8e5e0;
   --color-success: #2d7a42;
   --color-error: #c42a18;
+}
+
+/* ── Dark theme ──────────────────────────────────────────────────────────── */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-background: #0d0c0a;
+  --color-surface: #16140f;
+  --color-surface-hover: #1c1a14;
+  --color-ink: #f5f0e6;
+  --color-ink-dim: #a8a293;
+  --color-ink-faint: #6b6657;
+  --color-accent: #f05428;
+  --color-line: #2a2620;
+  --color-success: #7ea76e;
+  --color-error: #e05040;
 }
 
 /* ── Base styles ─────────────────────────────────────────────────────────── */
