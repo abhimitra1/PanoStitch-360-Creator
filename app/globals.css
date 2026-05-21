@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+/* ── Design tokens (dark = default) ─────────────────────────────────────── */
+@theme {
+  --color-background: #0d0c0a;
+  --color-surface: #16140f;
+  --color-surface-hover: #1c1a14;
+  --color-ink: #f5f0e6;
+  --color-ink-dim: #a8a293;
+  --color-ink-faint: #6b6657;
+  --color-accent: #f05428;
+  --color-line: #2a2620;
+  --color-success: #7ea76e;
+  --color-error: #e05040;
+
+  --font-display: var(--font-space-grotesk), 'Segoe UI', system-ui, sans-serif;
+  --font-sans: var(--font-outfit), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), 'Courier New', monospace;
+}
+
+/* ── Dark theme ──────────────────────────────────────────────────────────── */
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-background: #0d0c0a;
+  --color-surface: #16140f;
+  --color-surface-hover: #1c1a14;
+  --color-ink: #f5f0e6;
+  --color-ink-dim: #a8a293;
+  --color-ink-faint: #6b6657;
+  /* vivid coral — contrast 5.8:1 with near-black text (#0d0c0a) */
+  --color-accent: #f05428;
+  --color-line: #2a2620;
+  --color-success: #7ea76e;
+  --color-error: #e05040;
+}
+
+/* ── Light theme ─────────────────────────────────────────────────────────── */
+[data-theme='light'] {
+  color-scheme: light;
+  --color-background: #fafaf8;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f3f1ee;
+  --color-ink: #1a1816;
+  --color-ink-dim: #524e49;
+  --color-ink-faint: #9a948c;
+  /* deeper coral — contrast 5.3:1 with near-white text (#fafaf8) */
+  --color-accent: #cb3412;
+  --color-line: #e8e5e0;
+  --color-success: #2d7a42;
+  --color-error: #c42a18;
+}
+
+/* ── Base styles ─────────────────────────────────────────────────────────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-line);
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100dvh;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-accent) 20%, transparent);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 1.5px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--color-surface); }
+  ::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-ink-faint); }
+}
+
+/* ── Utilities ───────────────────────────────────────────────────────────── */
+/* Hide scrollbar while keeping scroll functionality */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── A-Frame overrides ───────────────────────────────────────────────────────── */
+/* VR entry button — styled to match our design system */
+.a-enter-vr-button,
+.a-enter-ar-button {
+  background: rgba(0, 0, 0, 0.55) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 4px !important;
+  bottom: 1rem !important;
+  right: 1rem !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: background 0.15s ease !important;
+}
+.a-enter-vr-button:hover,
+.a-enter-ar-button:hover {
+  background: rgba(0, 0, 0, 0.8) !important;
+}
+/* Prevent A-Frame fullscreen from hiding our app shell */
+.a-fullscreen .a-canvas {
+  position: fixed !important;
+}
+
+/* ── Hotspot pulse animation */
+@keyframes hotspot-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.15); }
+}
+.hotspot-pulse {
+  animation: hotspot-pulse 2s ease-in-out infinite;
+}
