@@ -16,6 +16,7 @@ export interface ViewState {
 
 interface Props {
   panoramaBlobId: string
+  previewBlobId?: string
   haov?: number
   vaov?: number
   initialYaw?: number
@@ -70,6 +71,7 @@ function applyCameraRotation(camera: THREE.PerspectiveCamera, yaw: number, pitch
 
 interface SceneProps {
   url: string
+  upgradeUrl?: string
   haov: number
   vaov: number
   initialYaw: number
@@ -88,6 +90,7 @@ interface SceneProps {
 
 function PanoScene({
   url,
+  upgradeUrl,
   haov,
   vaov,
   initialYaw,
@@ -106,6 +109,23 @@ function PanoScene({
   const { camera, gl } = useThree()
   const cam = camera as THREE.PerspectiveCamera
   const texture = useLoader(THREE.TextureLoader, url)
+  const meshRef = useRef<THREE.Mesh>(null)
+
+  // When the full-quality URL arrives, swap the texture without re-suspending.
+  useEffect(() => {
+    if (!upgradeUrl) return
+    const loader = new THREE.TextureLoader()
+    loader.load(upgradeUrl, (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace
+      const mesh = meshRef.current
+      if (!mesh) return
+      const mat = mesh.material as THREE.MeshBasicMaterial
+      const old = mat.map
+      mat.map = tex
+      mat.needsUpdate = true
+      old?.dispose()
+    })
+  }, [upgradeUrl])
 
   const yaw = useRef(initialYaw)
   const pitch = useRef(initialPitch)
@@ -196,6 +216,7 @@ function PanoScene({
       {/* scale={[-1, 1, 1]} mirrors the sphere geometry so the equirectangular texture
           reads left-to-right from inside, matching A-Frame's a-sky default behaviour. */}
       <mesh
+        ref={meshRef}
         scale={[-1, 1, 1]}
         onPointerDown={(e) => {
           isDragging.current = true
@@ -266,6 +287,7 @@ function PanoScene({
 
 export function PanoViewer({
   panoramaBlobId,
+  previewBlobId,
   haov = 360,
   vaov = 180,
   initialYaw = 0,
@@ -283,9 +305,26 @@ export function PanoViewer({
   className = '',
 }: Props) {
   const [panoUrl, setPanoUrl] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [blobLoading, setBlobLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
+  // Load preview blob first — small file, appears quickly.
+  useEffect(() => {
+    if (!previewBlobId) return
+    let active = true
+    let url: string | undefined
+    getBlobAsUrl(previewBlobId).then((u) => {
+      if (!active) { if (u) revokeUrl(u); return }
+      if (u) { url = u; setPreviewUrl(u) }
+    })
+    return () => {
+      active = false
+      if (url) { revokeUrl(url); url = undefined }
+    }
+  }, [previewBlobId])
+
+  // Load full panorama in the background.
   useEffect(() => {
     if (!panoramaBlobId) return
     let active = true
@@ -307,7 +346,10 @@ export function PanoViewer({
     }
   }, [panoramaBlobId])
 
-  const isLoading = blobLoading || !panoUrl
+  // Show canvas as soon as preview or full is ready; upgrade texture once both exist.
+  const initialUrl = previewUrl ?? panoUrl
+  const upgradeUrl = previewUrl && panoUrl ? panoUrl : undefined
+  const isLoading = !initialUrl && !loadError
 
   return (
     <>
@@ -433,7 +475,7 @@ export function PanoViewer({
           </div>
         )}
 
-        {panoUrl && (
+        {initialUrl && (
           <Canvas
             camera={{ position: [0, 0, 0], fov: initialHfov, near: 0.1, far: 1000 }}
             gl={{ antialias: true }}
@@ -441,7 +483,8 @@ export function PanoViewer({
           >
             <Suspense fallback={null}>
               <PanoScene
-                url={panoUrl}
+                url={initialUrl}
+                upgradeUrl={upgradeUrl}
                 haov={haov}
                 vaov={vaov}
                 initialYaw={initialYaw}

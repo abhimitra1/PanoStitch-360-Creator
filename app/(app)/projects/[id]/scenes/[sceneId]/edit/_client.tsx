@@ -55,6 +55,7 @@ export function SceneEditClient({ params }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
+  const savingRef = useRef(false)
 
   // Scene name editing
   const [editingName, setEditingName] = useState(false)
@@ -98,7 +99,8 @@ export function SceneEditClient({ params }: Props) {
   }, [editorMode])
 
   async function handleSaveHotspot(addReciprocal: boolean) {
-    if (!draft) return
+    if (!draft || savingRef.current) return
+    savingRef.current = true
     setSaving(true)
     try {
       if (draft.id) {
@@ -153,6 +155,7 @@ export function SceneEditClient({ params }: Props) {
       setDraft(null)
       setEditorMode('idle')
     } finally {
+      savingRef.current = false
       setSaving(false)
     }
   }
@@ -277,6 +280,7 @@ export function SceneEditClient({ params }: Props) {
         >
           <PanoViewer
             panoramaBlobId={scene.panoramaBlobId}
+            previewBlobId={scene.previewBlobId}
             haov={scene.haov}
             vaov={scene.vaov}
             initialYaw={scene.initialYaw}
@@ -493,7 +497,7 @@ function HotspotForm({
   onSave: (addReciprocal: boolean) => void
   onCancel: () => void
 }) {
-  const [addReciprocal, setAddReciprocal] = useState(true)
+  const [addReciprocal, setAddReciprocal] = useState(false)
 
   const set = (changes: Partial<HotspotDraft>) => onChangeDraft({ ...draft, ...changes })
 
@@ -669,6 +673,7 @@ function TargetViewModal({
         <div className="aspect-[16/9] bg-surface relative">
           <PanoViewer
             panoramaBlobId={targetScene.panoramaBlobId}
+            previewBlobId={targetScene.previewBlobId}
             haov={targetScene.haov}
             vaov={targetScene.vaov}
             initialYaw={targetScene.initialYaw}

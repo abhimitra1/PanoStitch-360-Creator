@@ -42,6 +42,7 @@ export type WorkerOutMessage =
       jobId: string
       panoramaBlobId: string
       thumbnailBlobId: string
+      previewBlobId: string
       haov: number
       vaov: number
       durationMs: number
@@ -545,6 +546,20 @@ async function composePanorama(
   return canvas.convertToBlob({ type: 'image/jpeg', quality: 0.88 })
 }
 
+// ── Preview (2048px, q=0.55) ──────────────────────────────────────────────────
+
+async function createPreviewBlobWorker(blob: Blob): Promise<Blob> {
+  const bitmap = await createImageBitmap(blob)
+  const { width, height } = bitmap
+  const scale = Math.min(1, 2048 / Math.max(width, height))
+  const tw = Math.round(width * scale)
+  const th = Math.round(height * scale)
+  const canvas = new OffscreenCanvas(tw, th)
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, tw, th)
+  bitmap.close()
+  return canvas.convertToBlob({ type: 'image/jpeg', quality: 0.55 })
+}
+
 // ── Thumbnail ─────────────────────────────────────────────────────────────────
 
 async function createThumbnail(panoramaBlob: Blob): Promise<Blob> {
@@ -660,17 +675,22 @@ async function runStitch(req: StitchRequest) {
   }
   postProgress(jobId, 'blending', 100, 'Panorama composed')
 
-  // ── Stage 6: thumbnail + save ──────────────────────────────────────────────
+  // ── Stage 6: thumbnail + preview + save ───────────────────────────────────
   postProgress(jobId, 'thumbnail', 0, 'Generating thumbnail')
-  const thumbnailBlob = await createThumbnail(panoramaBlob)
+  const [thumbnailBlob, previewBlob] = await Promise.all([
+    createThumbnail(panoramaBlob),
+    createPreviewBlobWorker(panoramaBlob),
+  ])
   postProgress(jobId, 'thumbnail', 50, 'Saving')
 
   const panoramaBlobId  = nanoid()
   const thumbnailBlobId = nanoid()
+  const previewBlobId   = nanoid()
 
   await db.blobs.bulkAdd([
     { id: panoramaBlobId,  data: panoramaBlob,  size: panoramaBlob.size,  type: 'image/jpeg', createdAt: new Date() },
     { id: thumbnailBlobId, data: thumbnailBlob, size: thumbnailBlob.size, type: 'image/jpeg', createdAt: new Date() },
+    { id: previewBlobId,   data: previewBlob,   size: previewBlob.size,   type: 'image/jpeg', createdAt: new Date() },
   ])
 
   const pBitmap = await createImageBitmap(panoramaBlob)
@@ -685,6 +705,7 @@ async function runStitch(req: StitchRequest) {
     jobId,
     panoramaBlobId,
     thumbnailBlobId,
+    previewBlobId,
     haov,
     vaov,
     durationMs: Date.now() - t0,

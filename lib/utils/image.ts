@@ -1,5 +1,29 @@
 const UNSUPPORTED_TYPES = new Set(['image/heic', 'image/heif'])
 
+// Re-encodes to JPEG at quality 0.88 without resizing.
+// Reduces file size ~50–70% vs raw camera output with no perceptible quality loss.
+export async function reencodeImage(blob: Blob): Promise<Blob> {
+  const bitmap = await createImageBitmap(blob)
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0)
+  bitmap.close()
+  return canvas.convertToBlob({ type: 'image/jpeg', quality: 0.88 })
+}
+
+// Downsizes to max 2048px and encodes at JPEG quality 0.55.
+// Used as the fast-loading preview before the full texture is ready.
+export async function createPreviewBlob(blob: Blob): Promise<Blob> {
+  const bitmap = await createImageBitmap(blob)
+  const { width, height } = bitmap
+  const scale = Math.min(1, 2048 / Math.max(width, height))
+  const tw = Math.round(width * scale)
+  const th = Math.round(height * scale)
+  const canvas = new OffscreenCanvas(tw, th)
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, tw, th)
+  bitmap.close()
+  return canvas.convertToBlob({ type: 'image/jpeg', quality: 0.55 })
+}
+
 export async function resizeImage(blob: Blob, maxDimension: number): Promise<Blob> {
   if (UNSUPPORTED_TYPES.has(blob.type.toLowerCase())) {
     throw new TypeError(`Unsupported format: ${blob.type}`)

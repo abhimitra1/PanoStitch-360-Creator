@@ -196,6 +196,7 @@ export function TourClient({ params }: Props) {
         <PanoViewer
           key={currentScene.id}
           panoramaBlobId={currentScene.panoramaBlobId}
+          previewBlobId={currentScene.previewBlobId}
           haov={currentScene.haov}
           vaov={currentScene.vaov}
           initialYaw={arrivalYaw ?? currentScene.initialYaw}

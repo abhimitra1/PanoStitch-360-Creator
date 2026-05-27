@@ -16,6 +16,7 @@ export interface Scene {
   name: string
   panoramaBlobId: string
   thumbnailBlobId: string
+  previewBlobId?: string
   haov: number
   vaov: number
   initialYaw: number

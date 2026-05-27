@@ -13,6 +13,7 @@ export async function deleteProject(projectId: string): Promise<void> {
       const blobIds: string[] = []
       for (const scene of scenes) {
         blobIds.push(scene.panoramaBlobId, scene.thumbnailBlobId)
+        if (scene.previewBlobId) blobIds.push(scene.previewBlobId)
       }
 
       const sourcePhotos = sceneIds.length
@@ -40,7 +41,7 @@ export async function deleteSceneWithCascade(sceneId: string): Promise<void> {
     const scene = await db.scenes.get(sceneId)
     if (!scene) return
 
-    const blobIds = [scene.panoramaBlobId, scene.thumbnailBlobId].filter(Boolean)
+    const blobIds = [scene.panoramaBlobId, scene.thumbnailBlobId, scene.previewBlobId].filter(Boolean) as string[]
     const sourcePhotos = await db.sourcePhotos.where('sceneId').equals(sceneId).toArray()
     for (const photo of sourcePhotos) {
       blobIds.push(photo.blobId)
@@ -58,6 +59,7 @@ interface SaveSceneOptions {
   name: string
   panoramaBlob: Blob
   thumbnailBlob: Blob
+  previewBlob?: Blob
   sourceBlobIds: string[]
   haov: number
   vaov: number
@@ -71,6 +73,7 @@ export async function saveNewScene(opts: SaveSceneOptions): Promise<string> {
   const sceneId = nanoid()
   const panoramaBlobId = nanoid()
   const thumbnailBlobId = nanoid()
+  const previewBlobId = opts.previewBlob ? nanoid() : undefined
 
   await db.transaction(
     'rw',
@@ -90,6 +93,15 @@ export async function saveNewScene(opts: SaveSceneOptions): Promise<string> {
         type: opts.thumbnailBlob.type,
         createdAt: new Date(),
       })
+      if (opts.previewBlob && previewBlobId) {
+        await db.blobs.add({
+          id: previewBlobId,
+          data: opts.previewBlob,
+          size: opts.previewBlob.size,
+          type: opts.previewBlob.type,
+          createdAt: new Date(),
+        })
+      }
 
       const scene: Scene = {
         id: sceneId,
@@ -97,6 +109,7 @@ export async function saveNewScene(opts: SaveSceneOptions): Promise<string> {
         name: opts.name,
         panoramaBlobId,
         thumbnailBlobId,
+        previewBlobId,
         haov: opts.haov,
         vaov: opts.vaov,
         initialYaw: opts.initialYaw,
@@ -170,6 +183,7 @@ interface SaveSceneFromBlobIdsOptions {
   name: string
   panoramaBlobId: string
   thumbnailBlobId: string
+  previewBlobId?: string
   sourceBlobIds: string[]
   haov: number
   vaov: number
@@ -195,6 +209,7 @@ export async function saveNewSceneFromBlobIds(opts: SaveSceneFromBlobIdsOptions)
         name: opts.name,
         panoramaBlobId: opts.panoramaBlobId,
         thumbnailBlobId: opts.thumbnailBlobId,
+        previewBlobId: opts.previewBlobId,
         haov: opts.haov,
         vaov: opts.vaov,
         initialYaw: opts.initialYaw,

@@ -76,6 +76,7 @@ export default function SettingsPage() {
         for (const s of scenes) {
           blobIds.add(s.panoramaBlobId)
           blobIds.add(s.thumbnailBlobId)
+          if (s.previewBlobId) blobIds.add(s.previewBlobId)
         }
         const sourcePhotos = scenes.length
           ? await db.sourcePhotos.where('sceneId').anyOf(scenes.map((s) => s.id)).toArray()

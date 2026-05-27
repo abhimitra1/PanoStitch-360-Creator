@@ -7,6 +7,7 @@ import { nanoid } from 'nanoid'
 import { ArrowLeft, Camera, Upload } from 'lucide-react'
 import { db } from '@/lib/db/schema'
 import { storeBlob } from '@/lib/db/blobs'
+import { reencodeImage, createPreviewBlob } from '@/lib/utils/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -97,9 +98,13 @@ export function Import360Client({ params }: Props) {
         .toArray()
       const order = existing.length
 
-      // Store the panorama image blob.
-      const panoBlob = fileInfo.file
-      const panoId = await storeBlob(panoBlob)
+      // Re-encode original to JPEG q=0.88 (50–70% smaller, no perceptible loss).
+      const panoBlob = await reencodeImage(fileInfo.file)
+      const panoId = await storeBlob(panoBlob, 'image/jpeg')
+
+      // Generate 2048px preview at q=0.55 for fast initial load in the viewer.
+      const previewBlob = await createPreviewBlob(fileInfo.file)
+      const previewId = await storeBlob(previewBlob, 'image/jpeg')
 
       // Generate a 480×240 thumbnail.
       const canvas = document.createElement('canvas')
@@ -127,6 +132,7 @@ export function Import360Client({ params }: Props) {
           name: sceneName.trim() || 'Untitled scene',
           panoramaBlobId: panoId,
           thumbnailBlobId: thumbId,
+          previewBlobId: previewId,
           haov,
           vaov,
           initialYaw: 0,
